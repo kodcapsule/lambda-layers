@@ -15,16 +15,9 @@
     - [Use the Layer in Your Lambda Function](#Use-the-Layer-in-Your-Lambda-Function)    
 - [Advanced Layer Techniques](#advanced-layer-techniques)
   - [Multi-language Layers](#multi-language-layers)
-  - [Layer Size Optimization](#layer-size-optimization)
-  - [Using Layers with Container Images](#using-layers-with-container-images)
-  - [Lambda Extensions via Layers](#lambda-extensions-via-layers)
+  - [Layer Size Optimization](#layer-size-optimization) 
   - [Automated Layer Updates](#automated-layer-updates)
-- [Best Practices for Lambda Layers](#best-practices-for-lambda-layers)
-  - [When to Use Layers](#when-to-use-layers)
-  - [Version Management Strategies](#version-management-strategies)
-  - [Documentation and Naming Conventions](#documentation-and-naming-conventions)
-  - [Security Considerations](#security-considerations)
-  - [Monitoring and Debugging](#monitoring-and-debugging)
+- [Best Practices for Lambda Layers](#best-practices-for-lambda-layers) 
 - [Conclusion](#conclusion)
 - [References and Additional Resources](#References-and-Additional-Resources)
 
@@ -36,7 +29,7 @@ As your serverless applications grow in complexity and the number of Lambda func
 
 
 ## Understanding AWS Lambda Layers
-A lambda layer is a special container, a `.zip` file archive that contains supplementary code or data. Lambda layers serve as a distribution mechanism for function dependencies, custom runtime, or configuration files for your Lambda functions. Layers let you keep your function deployment packages small and organized by separating your function code from its dependencies.
+A lambda layer is a special container, a `.zip` file archive that contains supplementary code or data. Lambda layers serve as a distribution mechanism for function dependencies, custom runtime, or configuration files for your Lambda functions. Layers let you keep your function deployment packages small and organized by separating your function business logic code from its dependencies.
 
 ![Lambda Layer Architecture](/images/layer-example.gif)
 
@@ -156,7 +149,7 @@ First we will create a python virtual environments at install all the neccessory
   mkdir python 
 ```
 > **Important**: The directory structure matters! Python packages must be in a directory named `python` to be automatically added to the PYTHONPATH when the layer is attached to a Lambda function.
-**Step 4** copy the content in venv/Lib/site-packages/ to python/
+**Step 4** copy the content in venv/Lib/site-packages/ directory  to python/
 ```bash
    cp -r venv/Lib/site-packages/* python/
 ```
@@ -166,15 +159,15 @@ First we will create a python virtual environments at install all the neccessory
 ```
 ### Create and Publish your Lambda Layer in AWS
 #### Method 1:Using AWS Console
-1.Loing into your AWS account and  open the AWS Lambda console
+1. Login into your AWS account and  open the AWS Lambda console
 2. Navigate to `Layers`in the left navigation
 3. Choose `Create layer`
 4. Enter details:
-   - **Name**: Give your layer a descriptive name (e.g., `url-shortner-lib`)
+   - **Name**: Give your layer a descriptive name (e.g., `url-shortener-lib`)
    - **Description(Optional)**: enter a description of what's in the layer
-   - **Upload ZIP**: Upload your `python-layer.zip` file. You can upload directly from you computer or Amazon S3
+   - **Upload ZIP**: Upload your layer zip,`python-layer.zip` file. You can upload directly from you computer or Amazon S3
    - **Compatible architectures(Optional)**: Select  one value or both values. 
-   - **Compatible runtimes(Optional)**: Select the appropriate runtimes (e.g., Python 3.8, 3.9, etc.)
+   - **Compatible runtimes(Optional)**: Select the appropriate runtimes (e.g., python 3.10 python 3.11 python 3.12, etc.)
    - **License(Optional)**: enter any necessary license information
 5. Choose `Create` to publish your layer
 
@@ -183,7 +176,7 @@ First we will create a python virtual environments at install all the neccessory
 #### Method 2:Using AWS CLI
   ```bash
   aws lambda publish-layer-version \
-    --layer-name url-shortner-lib \
+    --layer-name url-shortener-lib \
     --description "Layer contains all the dependecies for the url-shortener lambda function" \
     --zip-file fileb://python-layer.zip \
     --compatible-runtimes python3.10 python3.11 python3.12
@@ -191,12 +184,42 @@ First we will create a python virtual environments at install all the neccessory
 > **Important**: If the size of your python.zip file is greater than 10mb, it is recommended to uplaod the zip file to an S3 bucket and use the object ARN.
 
 
+### Create a Lambda Function 
+#### Method 1:Using AWS Console
+1. Open the AWS Lambda console
+2. Click the "Create function" button
+3. Choose one of the creation options:
+     - **Author from scratch:** Start with a basic function ✅
+     - **Use a blueprint:** Use pre-built templates
+     - **Container image:**Deploy from a container image
+     - **Browse serverless app repository:** Use existing applications
+4 Choose Author from scratch:
+    -  **Function name:** Enter a descriptive name (url-shortener)
+    -  **Runtime:** Select your preferred runtime (Python 3.12)
+    - **Architecture:** Choose x86_64 or arm64
+    - **Permissions:** Choose `Create a new role with basic Lambda permissions` 
+5. Click "Create function"
+6. Upload the code from the python script, `url-shortener.py`.
+
+#### Method 2: Using AWS CLI
+
+```bash
+  # Create a basic Lambda function
+aws lambda create-function \
+    --function-name url-shortener \
+    --runtime python3.12 \
+    --role arn:aws:iam::YOUR_ACCOUNT_ID:role/lambda-execution-role \
+    --handler lambda_function.lambda_handler \
+    --zip-file fileb://function.zip \
+    --description "My url-shortener function"
+```
 
 
-### Use the Layer in Your Lambda Function
+
+### Use the Layer in Your Lambda Function (url-shortener)
 Now you can attach this layer to any Lambda function:
 #### Method 1:Using AWS Console
-1. Navigate to your Lambda function
+1. Navigate to your Lambda function ,url-shortener
 2. Go to the "Layers" section below the code editor
 3. Click "Add a layer"
 4. Select "Custom layers"
@@ -209,13 +232,32 @@ aws lambda update-function-configuration \
   --function-name url-shortener \
   --layers arn:aws:lambda:<REGION>:<ACCOUNT-ID>:<lLAMBDA LAYER NAME>:<VERSION>
 ```
-Replace `<REGION>` and `<ACCOUNT-ID>` `<lLAMBDA LAYER NAME>` and `<VERSION>` with the rspective values
+Replace `<REGION>` and `<ACCOUNT-ID>` `<lLAMBDA LAYER NAME>` and `<VERSION>` with the respective values
 
+### Testing  Your Lambda Function.
+After you have successfully created your function and layer ,we need to test to make sure everything is working fine. 
+1. Click on the "Test" tab (located near the top, next to "Code" and "Configuration")
+2. If this is your first test, you'll see "Configure test event" 
+3. Click `Create new event`
+4. Give your test event a name (url_url-shortener)
+```bash
+{
+  "url": "https://www.example.com/very/long/path/to/some/resource?param1=value1&param2=value2"
+}
+```
+5. Click test.
 
+expected response
 
-
-
-
+```bash
+{
+  "statusCode": 200,
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": "{\"original_url\": \"https://www.example.com/very/long/path/to/some/resource?param1=value1&param2=value2\", \"short_url\": \"https://tinyurl.com/abc123\"}"
+}
+```
 
 ## Advanced Layer Techniques
 
@@ -223,7 +265,7 @@ Replace `<REGION>` and `<ACCOUNT-ID>` `<lLAMBDA LAYER NAME>` and `<VERSION>` wit
 
 A single Layer can support multiple runtimes by including the appropriate directory structure for each. For example:
 
-```
+```bash
 layer-content/
 ├── python/
 │   └── lib/
@@ -239,128 +281,36 @@ This approach is particularly useful for cross-language utilities or when implem
 
 ### Layer Size Optimization
 
-Lambda Layers, like function deployment packages, have a size limit of 250 MB unzipped. To optimize Layer size:
+Your lambda layers, just like function deployment packages, have a size limit of 250 MB unzipped file. In order to optimize your layer size:
+1. Only include  production dependencies in your layer; make sure to  exclude any  development and testing dependencies that will bloat your layer size
+2. Use specific and selective imports for large libraries, for example, do not import a whole library but rather import specific components that you need.
+3. Try and compress static assets when possible
+4. Remove some  unnecessary files like documentation and examples, which are likely to increase the size of your layer
+5. Always consider splitting very large dependencies  into multiple Layers 
 
-1. Include only production dependencies, excluding development and test packages
-2. Use selective imports for large libraries (e.g., importing specific components from AWS SDK)
-3. Compress static assets when possible
-4. Remove unnecessary files like documentation and examples
-5. Consider splitting very large dependency sets into multiple Layers
+### Automating Layer Updates
+When you have  dependencies that require frequent updates, it is best you consider automating  these  layer updates:
+1. You can  first create a CI/CD pipeline that will:
+   - periodically checks for dependency updates
+   - builds a new Layer version when updates are available
+   - publishe the new Layer version
+   - and optionally updates functions that depend on the layer to use the new version
+2. You can also  use AWS EventBridge to trigger the pipeline on a schedule or in response to security breaches
+3. Add  testing and validation of  new Layer versions before deployment.
 
-### Using Layers with Container Images
+## Best Practices for using Lambda Layers
+The following section describes the best practices that will help you get the most out of Lambda Layers.It is not everything belongs in a Layer. You should consider these guidelines as best practices   when you want to opt for layers:
 
-While Layers are traditionally associated with ZIP-based Lambda deployments, you can also incorporate Layer-like functionality in container image deployments:
-
-1. Create a base Docker image containing common dependencies
-2. Use multi-stage builds to include only necessary components
-3. Extend the base image for specific functions
-
-This approach combines the benefits of containers with the organizational principles of Layers.
-
-### Lambda Extensions via Layers
-
-Lambda Extensions—a powerful feature for monitoring, observability, and security—are deployed as Layers. Extensions run alongside your function in the execution environment, enabling advanced capabilities like:
-
-- Enhanced logging and monitoring
-- Security scanning
-- Configuration management
-- Secret rotation
-
-To implement an extension:
-
-1. Create an extension binary or script
-2. Place it in the `extensions/` directory of your Layer
-3. Ensure it follows the Lambda Extensions API protocol
-4. Publish and attach it like a standard Layer
-
-### Automated Layer Updates
-
-For dependencies that require frequent updates, consider automating the Layer update process:
-
-1. Create a CI/CD pipeline that:
-   - Periodically checks for dependency updates
-   - Builds a new Layer version when updates are available
-   - Publishes the new Layer version
-   - Optionally updates functions to use the new version
-
-2. Use AWS EventBridge to trigger the pipeline on a schedule or in response to security advisories
-
-3. Implement testing to validate new Layer versions before deployment
-
-## ## Best Practices for Lambda Layers
-
-
-Following these best practices will help you get the most out of Lambda Layers:
-
-### When to Use Layers
-
-Not everything belongs in a Layer. Consider these guidelines:
-
-- **Use Layers for**: 
-  - Dependencies shared across multiple functions
-  - Large libraries that would bloat function packages
-  - Custom runtimes or extensions
-  - Organization-wide utilities
-
-- **Keep in your function package**: 
-  - Business logic specific to the function
-  - Small, function-specific dependencies
-  - Configuration that varies between functions
-
-### Version Management Strategies
-
-Effective version management is crucial for Layer stability:
-
-1. **Semantic versioning**: Apply semantic versioning principles to your Layer updates
-2. **Testing**: Thoroughly test new Layer versions before deployment
-3. **Gradual rollout**: Update functions to use new Layer versions incrementally
-4. **Rollback plan**: Maintain the ability to revert to previous Layer versions
-5. **Documentation**: Document changes in each Layer version
-
-### Documentation and Naming Conventions
-
-Clear documentation and consistent naming make Layers more manageable:
-
-1. **Layer naming**: Adopt a consistent naming convention (e.g., `{purpose}-{runtime}-layer`)
-2. **Version descriptions**: Include detailed descriptions when publishing new versions
-3. **Internal registry**: Maintain a registry of available Layers and their purposes
-4. **Usage examples**: Provide example code showing how to use the Layer's contents
-5. **Ownership**: Clearly indicate which team or individual maintains each Layer
-
-### Security Considerations
-
-Layers introduce specific security considerations:
-
-1. **Dependency scanning**: Regularly scan Layer dependencies for vulnerabilities
-2. **Principle of least privilege**: Control Layer access using IAM policies
-3. **Third-party code**: Audit third-party packages before including them in Layers
-4. **Sensitive data**: Avoid storing sensitive data or credentials in Layers
-5. **Layer permissions**: Be cautious when sharing Layers across accounts or publicly
-
-### Monitoring and Debugging
-
-Effectively monitor and debug functions that use Layers:
-
-1. **Local testing**: Test functions with Layers locally using tools like AWS SAM
-2. **Layer usage tracking**: Monitor which functions use each Layer version
-3. **Error attribution**: Develop strategies to identify when errors originate from Layer code
-4. **Observability**: Ensure logging is comprehensive enough to debug Layer-related issues
-5. **Performance monitoring**: Monitor how Layers affect function performance and cold start times
-
+1. You only use layers when you want to share dependencies  across multiple functions
+2. You have large libraries that would bloat your lambda function packages
+3. You want to use custom runtimes and some Organization-wide utilities
+4. Separating your function business logic from dependencies.
+5. Consider versioning  your lambda layers for  layer stability
+6. Ensure you regularly scan Layer dependencies for vulnerabilities, and also make sure to audit third-party packages before including them in your  Layers
+7. As much as possible, avoid including sensitive data or any  credentials in Layers
+8. Monitor and debug functions that use layers.
 ## Conclusion
-AWS Lambda Layers represent a significant advancement in serverless architecture, enabling code sharing, dependency management, and customization that was previously difficult to achieve in the serverless paradigm.
-
-By strategically implementing Layers, you can:
-
-- Reduce code duplication across functions
-- Simplify dependency management
-- Decrease deployment package sizes
-- Enable consistent patterns across your organization
-- Support custom runtimes and extensions
-
-While Layers introduce some complexity and considerations, the benefits they provide far outweigh these challenges for most serverless applications.
-
-As serverless computing continues to evolve, Lambda Layers will remain an essential tool for building scalable, maintainable, and efficient applications. By mastering Layers, you position yourself at the forefront of serverless best practices.
+AWS Lambda Layers represent  are a great tool that  lets you keep your function deployment packages small and organized by separating your function business logic code from its dependencies. This article dived deep into what lambda layers are, how to create and use layers and some advance concepts and best practices. 
 ## References and Additional Resources
 
 - [AWS Lambda Layers Documentation](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html)
@@ -368,6 +318,7 @@ As serverless computing continues to evolve, Lambda Layers will remain an essent
 - [AWS Lambda Power Tools](https://awslabs.github.io/aws-lambda-powertools-python/)
 - [Serverless Framework Documentation](https://www.serverless.com/framework/docs/providers/aws/guide/layers)
 - [AWS Lambda Extensions API](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-extensions-api.html)
+- [Best practices for working with AWS Lambda functions](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html)
 
 ---
 
