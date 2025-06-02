@@ -62,19 +62,19 @@ Lambda layers are versioned. A layer version is an immutable snapshot of a layer
 
 ### Benefits of Using Lambda Layers
 
-- **1.Reduced the size of a function's deployment packages:**Instead of including all of your function dependencies in your deployment package, place them in a layer.  This keeps deployment bundles simple and manageable.
-- **2.Separation of Concerns:**Layers can help  separate your function's  business logic from its  dependencies and allows different team members to focus on different aspects of the application.
-- **3.Code Reusability**Layers allow you to share dependencies across multiple lambda functions. Without layers, you need to include the same dependencies in each of your function's deployment package which goes agains the the DRY (Don't Repeat Yourself) principle in programming.
-- **4.To use the Lambda console code editor:**The code editor is a helpful tool for rapidly evaluating small changes to function code.  However, if your deployment package is too big, you won't be able to use the editor.  Layers allow you to use the code editor and reduce the size of your package.
-- **5.Faster Deployment Times:**When you use smaller Lambda deployment packages, your Lambda uploads are faster, resulting in faster function updates.  This efficiency is especially useful in CI/CD pipelines, where deployment speed influences overall development velocity.
+- 1.Reduced the size of a function's deployment packages:Instead of including all of your function dependencies in your deployment package, place them in a layer.  This keeps deployment bundles simple and manageable.
+- 2.Separation of Concerns: Layers can help  separate your function's  business logic from its  dependencies and allows different team members to focus on different aspects of the application.
+- 3.Code Reusability:Layers allow you to share dependencies across multiple lambda functions. Without layers, you need to include the same dependencies in each of your function's deployment package which goes agains the the DRY (Don't Repeat Yourself) principle in programming.
+- 4.To use the Lambda console code editor:The code editor is a helpful tool for rapidly evaluating small changes to function code.  However, if your deployment package is too big, you won't be able to use the editor.  Layers allow you to use the code editor and reduce the size of your package.
+- 5.Faster Deployment Times:When you use smaller Lambda deployment packages, your Lambda uploads are faster, resulting in faster function updates.  This efficiency is especially useful in CI/CD pipelines, where deployment speed influences overall development velocity.
 
 
 ### Common Use Cases for AWS Lambda Layers
 
-- **1.Database Connectors:**Database drivers and connectors in applications  often include some complex dependencies, bundling  such dependencies  in a layer ensures that your  database access patterns are uniform for all your Lambda functions.
-- **2.Monitoring and Logging Utilities:**You may have some  instrumentation code used for monitoring, logging, and tracing in your applications, it is best practice to use  a shared layer that  can easily be  used across functions without any changes. This makes sure that your applications  uses the same observability best practices.
-- **3.Internal Company Libraries:**Many organisations mostly develop their own internal tools and libraries. Packing these tools and libraries as Layers encourages reuse and standardisation in  multiple  projects in the organization.
-- **4.Frameworks and SDKs:**Layers can be used  to package complete frameworks or SDKs, ensuring that there is some  consistency in functions.  This approach is good for organization-specific frameworks or some huge third-party SDKs that might otherwise bloat your function packages.
+- 1.Database Connectors: Database drivers and connectors in applications  often include some complex dependencies, bundling  such dependencies  in a layer ensures that your  database access patterns are uniform for all your Lambda functions.
+- 2.Monitoring and Logging Utilities: You may have some  instrumentation code used for monitoring, logging, and tracing in your applications, it is best practice to use  a shared layer that  can easily be  used across functions without any changes. This makes sure that your applications  uses the same observability best practices.
+- 3.Internal Company Libraries: Many organisations mostly develop their own internal tools and libraries. Packing these tools and libraries as Layers encourages reuse and standardisation in  multiple  projects in the organization.
+- 4.Frameworks and SDKs: Layers can be used  to package complete frameworks or SDKs, ensuring that there is some  consistency in functions.  This approach is good for organization-specific frameworks or some huge third-party SDKs that might otherwise bloat your function packages.
 
 #### Real-World Example of using layers
 
